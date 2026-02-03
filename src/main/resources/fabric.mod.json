@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "vegans",
+  "version": "${version}",
+  "name": "Vegans",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/vegans/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-datagen": [
+      "fun.swip.vegans.client.VegansDataGenerator"
+    ],
+    "main": [
+      "fun.swip.vegans.Vegans"
+    ]
+  },
+  "mixins": [
+    "vegans.mixins.json",
+    {
+      "config": "vegans.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
