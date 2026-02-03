@@ -10,19 +10,12 @@
   "icon": "assets/vegans/icon.png",
   "environment": "server",
   "entrypoints": {
-    "fabric-datagen": [
-      "fun.swip.vegans.client.VegansDataGenerator"
-    ],
     "main": [
       "fun.swip.vegans.Vegans"
     ]
   },
   "mixins": [
-    "vegans.mixins.json",
-    {
-      "config": "vegans.client.mixins.json",
-      "environment": "client"
-    }
+    "vegans.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
