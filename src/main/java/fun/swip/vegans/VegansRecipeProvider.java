@@ -22,11 +22,20 @@ public class VegansRecipeProvider extends FabricRecipeProvider {
             @Override
             public void buildRecipes() {
                 HolderLookup.RegistryLookup<Item> itemLookup = registries.lookupOrThrow(Registries.ITEM);
-                shapeless(RecipeCategory.BUILDING_BLOCKS, Items.DIRT) // You can also specify an int to produce more than one
-                        .requires(Items.GREEN_DYE) // You can also specify an int to require more than one, or a tag to accept multiple things
-                        // Create an advancement that gives you the recipe
-                        .unlockedBy(getHasName(Items.COARSE_DIRT), has(Items.COARSE_DIRT))
+
+                // Brown dye recipes
+                shapeless(RecipeCategory.DECORATIONS, Items.BROWN_DYE, 2)
+                        .requires(Items.GREEN_DYE)
+                        .requires(Items.RED_DYE)
+                        .unlockedBy(getHasName(Items.BROWN_DYE), has(Items.GREEN_DYE))
                         .save(output);
+
+                // Brown dye recipes
+                shapeless(RecipeCategory.BUILDING_BLOCKS, Items.WHITE_WOOL, 4)
+                        .requires(Items.STRING, 4)
+                        .unlockedBy(getHasName(Items.WHITE_WOOL), has(Items.WHITE_WOOL))
+                        .save(output);
+
             }
         };
     }
