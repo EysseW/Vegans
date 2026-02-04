@@ -2,39 +2,42 @@ package fun.swip.vegans;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.permission.Permissions;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack; // Fixed: Use CommandSourceStack
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public class ScoreCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(CommandManager.literal("treescore")
+            dispatcher.register(Commands.literal("treescore")
                     .executes(ScoreCommand::execute)
             );
         });
     }
-    private static int execute(CommandContext<ServerCommandSource> context) {
+
+    private static int execute(CommandContext<CommandSourceStack> context) { // Fixed generic type
         try {
             // 1. Get the player from the source
-            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+            // getPlayerOrThrow() is perfect for Mojmap 1.21.x
+            ServerPlayer player = context.getSource().getPlayer();
 
-            // 2. Fetch the score safely
-            int score = player.getAttachedOrCreate(Vegans.TREE_SCORE);
+            // 2. Fetch the score safely from your Data Attachment
+            int score = player.getAttachedOrCreate(TreeScore.TREE_SCORE);
 
             // 3. Print it to the chat
-            context.getSource().sendFeedback(() ->
-                            Text.literal("Current Tree Score: ")
-                                    .append(Text.literal(String.valueOf(score)).formatted(Formatting.GREEN)),
+            // sendSuccess requires (Supplier<Component>, boolean)
+            context.getSource().sendSuccess(() ->
+                            Component.literal("Current Tree Score: ")
+                                    .append(Component.literal(String.valueOf(score)).withStyle(ChatFormatting.GREEN)),
                     false
             );
 
             return 1; // Success
         } catch (Exception e) {
-            context.getSource().sendError(Text.literal("This command must be run by a player!"));
+            // sendFailure is the correct way to handle errors in Mojmap commands
+            context.getSource().sendFailure(Component.literal("This command must be run by a player!"));
             return 0;
         }
     }

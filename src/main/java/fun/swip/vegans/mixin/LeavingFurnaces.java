@@ -1,11 +1,12 @@
 package fun.swip.vegans.mixin;
 
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
-import net.minecraft.util.Language;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -39,22 +40,22 @@ public class LeavingFurnaces {
 
     };
 
-    @Inject(method = "setStack", at = @At("HEAD"))
+    @Inject(method = "setItem", at = @At("HEAD"))
     public void onSetStack(int slot, ItemStack stack, CallbackInfo ci) {
-        if (slot == 1 && stack.isOf(Items.COAL)) {
+        if (slot == 1 && stack.is(Items.COAL)) {
             AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity)(Object)this;
-            World world = furnace.getWorld();
-            if (stack.isOf(Items.COAL)) {
+            Level world = furnace.getLevel();
+            if (stack.is(Items.COAL)) {
                 if (world != null) {
-                    world.removeBlock(furnace.getPos(), false);
+                    world.removeBlock(furnace.getBlockPos(), false);
                     var server = world.getServer();
 
                     String randomKey = LEAVE_KEYS[RANDOM.nextInt(LEAVE_KEYS.length)];
-                    String translatedString = Language.getInstance().get(randomKey);
-                    Text leaveMessage = Text.literal(translatedString).formatted(net.minecraft.util.Formatting.YELLOW);
+                    String translatedString = Language.getInstance().getOrDefault(randomKey);
+                    Component leaveMessage = Component.literal(translatedString).withStyle(ChatFormatting.YELLOW);
 
                     assert server != null;
-                    server.getPlayerManager().broadcast(leaveMessage, false);
+                    server.getPlayerList().broadcastSystemMessage(leaveMessage, false);
                 }
             }
         }

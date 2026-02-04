@@ -1,19 +1,16 @@
 package fun.swip.vegans.mixin;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ConsumableComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.StyleSpriteSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.WorldLoader;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,15 +18,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Debug(export = true)
-@Mixin(ConsumableComponent.class)
+@Mixin(Consumable.class)
 public class NoMeatUse {
-    TagKey<Item> meatTag = TagKey.of(
-            RegistryKeys.ITEM,
-            Identifier.of("minecraft", "meat")
+    TagKey<Item> meatTag = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath("minecraft", "meat")
     );
-    TagKey<Item> fishTag = TagKey.of(
-            RegistryKeys.ITEM,
-            Identifier.of("minecraft", "fishes")
+    TagKey<Item> fishTag = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath("minecraft", "fishes")
     );
 
 
@@ -39,17 +36,17 @@ public class NoMeatUse {
     }
 
     @Inject(
-            method = "finishConsumption",
+            method = "onConsume",
             at = @At("HEAD"),
             cancellable = true
     )
 
-    public void finishConsumption(World world, LivingEntity user, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
+    public void finishConsumption(Level world, LivingEntity user, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
         System.out.println("Item consumed!");
         //ConsumableComponent consumableComponent = (ConsumableComponent)stack.get(DataComponentTypes.CONSUMABLE);
-        if (stack.isIn(meatTag) || stack.isIn(fishTag)) {
-            if (user instanceof ServerPlayerEntity serverPlayer) {
-                serverPlayer.networkHandler.disconnect(Text.literal("You were a vegan, remember?"));
+        if (stack.is(meatTag) || stack.is(fishTag)) {
+            if (user instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.disconnect(Component.literal("You were a vegan, remember?"));
             }
             System.out.println("meat!");
             cir.setReturnValue(stack);

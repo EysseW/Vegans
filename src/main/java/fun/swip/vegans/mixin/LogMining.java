@@ -1,17 +1,19 @@
 package fun.swip.vegans.mixin;
 
+import fun.swip.vegans.TreeScore;
 import fun.swip.vegans.Vegans;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,21 +22,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Block.class)
 public class LogMining {
     @Inject(
-            method = "onBreak",
+            method = "playerWillDestroy",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void onBlockBreak(World world, BlockPos pos, BlockState state, PlayerEntity player, CallbackInfoReturnable<BlockState> cir) {
-        if (state.isIn(BlockTags.LOGS)) {
+    private void onBlockBreak(Level world, BlockPos pos, BlockState state, Player player, CallbackInfoReturnable<BlockState> cir) {
+        if (state.is(BlockTags.LOGS)) {
 
-            Integer currentScore = player.getAttachedOrCreate(Vegans.TREE_SCORE);
+            Integer currentScore = player.getAttachedOrCreate(TreeScore.TREE_SCORE);
             System.out.println(currentScore);
             if (currentScore > 0) {
-                ExperienceOrbEntity.spawn((ServerWorld) world, Vec3d.ofCenter(pos),5);
-                player.setAttached(Vegans.TREE_SCORE, currentScore - 1);
-            } else if (player instanceof ServerPlayerEntity serverPlayer) {
+                ExperienceOrb.award((ServerLevel) world, Vec3.atCenterOf(pos),5);
+                player.setAttached(TreeScore.TREE_SCORE, currentScore - 1);
+            } else if (player instanceof ServerPlayer serverPlayer) {
                 cir.setReturnValue(state);
-                serverPlayer.networkHandler.disconnect(Text.of("Deforestation is not the answer!"));
+                serverPlayer.connection.disconnect(Component.literal("Deforestation is not the answer!"));
             } else {
                 System.out.println("Error: mining entity isn't a serverPlayer");
             }

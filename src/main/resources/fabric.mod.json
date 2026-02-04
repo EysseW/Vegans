@@ -12,6 +12,9 @@
   "entrypoints": {
     "main": [
       "fun.swip.vegans.Vegans"
+    ],
+    "fabric-datagen": [
+      "fun.swip.vegans.datagen.DataGenerator"
     ]
   },
   "mixins": [
